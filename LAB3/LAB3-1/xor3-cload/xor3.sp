@@ -1,0 +1,65 @@
+3-input xor (loading c=0.01p)
+.option post=2
+.prot 
+.lib  'cic018.l' tt
+.unprot
+.global vdd gnd
+
+
+.subckt  inv  in  out
+mp		out		in		vdd		vdd		P_18		l=0.18u	w=2u
+mn		out		in		gnd		gnd		N_18		l=0.18u	w=1u
+.ends
+
+.subckt  xor3  a b c out
+xINV_A a a_  inv
+xINV_B b b_  inv
+xINV_C c c_  inv
+mp0		net2	a		vdd		vdd		P_18		l=0.18u	w=2u
+mp1		net3	a_		vdd		vdd		P_18		l=0.18u	w=2u
+mp2		net4	b		net2	vdd		P_18		l=0.18u	w=2u
+mp3		net4	b_		net3	vdd		P_18		l=0.18u	w=2u
+mp4		out		c_		net4	vdd		P_18		l=0.18u	w=2u
+
+mp5		net9	a		vdd		vdd		P_18		l=0.18u	w=2u
+mp6		net10	a_		vdd		vdd		P_18		l=0.18u	w=2u
+mp7		net11	b_		net9	vdd		P_18		l=0.18u	w=2u
+mp8		net11	b		net10	vdd		P_18		l=0.18u	w=2u
+mp9		out		c		net11	vdd		P_18		l=0.18u	w=2u
+
+mn0		net5	b		net0	gnd		N_18		l=0.18u	w=1u
+mn1		net5	b_		net1	gnd		N_18		l=0.18u	w=1u
+mn2		net0	a_		gnd		gnd		N_18		l=0.18u	w=1u
+mn3		net1	a		gnd		gnd		N_18		l=0.18u	w=1u
+mn4		out		c		net5	gnd		N_18		l=0.18u	w=1u
+
+mn5		out 	c_		net8	gnd		N_18		l=0.18u	w=1u
+mn6		net8	b		net6	gnd		N_18		l=0.18u	w=1u
+mn7		net8	b_		net7	gnd		N_18		l=0.18u	w=1u
+mn8		net6	a		gnd		gnd		N_18		l=0.18u	w=1u
+mn9		net7	a_		gnd 	gnd		N_18		l=0.18u	w=1u
+.ends
+
+ 
+
+
+xXOR_1 a b c out xor3
+c1 out gnd k
+
+vvdd	vdd		0		1.8
+vgnd	gnd		0		0
+
+*name signal init pulse脈衝 ( 0(起始點) 1.8(最高點) 5n(開始延遲的時間)  0.01n(切換的時間) 0.01n 2.49n(在輸入1的時間) 5n(週期))
+va		a		0		pulse(1.8	0	0.1n	0.1n	0.1n	39.9n	80n)
+vb		b		0		pulse(1.8	0	0.1n	0.1n	0.1n	79.9n	160n)
+vc		c		0		pulse(1.8	0	0.1n	0.1n	0.1n	159.9n	320n)
+
+.meas	tran	delayN	trig	v(a)	val=0.9	rise=1
++						targ	v(out)	val=0.9	rise=1
+.meas tran pw avg power
+
+.meas tran pdp=param('pw*delayN')
+
+
+.tran 0.1n 640n (sweep 	k 	0.05p  0.5p   0.05p)
+.end
